@@ -20,6 +20,7 @@
         :data="tableData"
         style="width: 100%"
         :row-class-name="rowClassName"
+        height="550"
       >
         <el-table-column prop="rank" label="排名" width="100" />
         <el-table-column prop="nickname" label="昵称" />
@@ -204,7 +205,7 @@ const rowClassName = ({ row }: { row: any }) => {
   padding: 20px;
   margin: 20px;
   background-color: #fff;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 120px);
 }
 .dateTabs {
   margin-top: 10px;
