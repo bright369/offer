@@ -13,6 +13,11 @@ const router = createRouter({
       name: "rankDetail",
       component: () => import("../views/rankDetail.vue"),
     },
+    {
+      path: "/compete",
+      name: "compete",
+      component: () => import("../views/compete.vue"),
+    },
   ],
 });
 

@@ -1,86 +1,89 @@
-<!--
- * @git config user.name: wangxin
- * @LastEditors: wangxin
--->
-<!-- src/components/RankTrend.vue -->
 <template>
-  <el-button @click="dialogVisible = true" link type="primary"
-    >排名趋势</el-button
-  >
+  <el-button @click="dialogVisible = true" link type="primary" size="small">
+    排名趋势
+  </el-button>
   <el-dialog
     v-model="dialogVisible"
     title="排名变化趋势"
     width="500"
     :append-to-body="true"
+    @open="renderChart"
   >
-    <div ref="chartContainer" style="height: 400px"></div>
+    <div
+      ref="chartContainer"
+      class="chart-container"
+      style="height: 400px"
+    ></div>
   </el-dialog>
 </template>
 
-<script lang="ts" setup>
-import { ref, onMounted, computed } from "vue";
-import { useRankStore } from "@/stores/rankStore";
+<script setup lang="ts">
+import { ref, watch, onBeforeUnmount } from "vue";
 import * as echarts from "echarts";
-
-const chartContainer = ref<HTMLDivElement | null>(null);
-const rankStore = useRankStore();
-const userId = rankStore.currentUser.id;
-const type: "daily" | "weekly" | "monthly" = "daily"; // 排行榜类型
+// 定义 props
+const props = defineProps<{
+  userId: string;
+}>();
+const chartContainer = ref<HTMLElement | null>(null);
+let chartInstance: echarts.ECharts | null = null;
 const dialogVisible = ref(false);
-const props = defineProps({
-  userId: {
-    default: "",
-    type: String,
-  },
-});
-onMounted(() => {
-  rankStore.fetchUserRankDetail(userId, type);
-  rankStore.$subscribe(() => {
-    renderChart();
-  });
-});
 
-// 获取用户排名历史
-const rankHistory = computed(() => {
-  return rankStore.userRankDetail?.rankHistory || [];
-});
-
-// 渲染排名变化趋势图
-const renderChart = (): void => {
-  const history = rankHistory.value;
-  if (!history.length || !chartContainer.value) return;
-
-  const chart = echarts.init(chartContainer.value);
-
-  const option = {
-    title: {
-      text: "排名变化趋势",
-    },
-    xAxis: {
-      type: "category",
-      data: history.map((item) => item.time), // 横轴为时间
-    },
-    yAxis: {
-      type: "value",
-      name: "排名",
-      inverse: true, // 排名越小越好，y轴需要反向显示
-    },
-    series: [
-      {
-        data: history.map((item) => item.rank), // 用排名数据来绘制折线图
-        type: "line",
-        smooth: true,
-        markLine: {
-          data: [{ type: "average", name: "平均排名" }],
-        },
+const renderChart = () => {
+  if (chartContainer.value) {
+    if (!chartInstance) {
+      chartInstance = echarts.init(chartContainer.value);
+    }
+    const option = {
+      tooltip: {
+        trigger: "axis",
       },
-    ],
-  };
-
-  chart.setOption(option);
+      xAxis: {
+        type: "category",
+        data: ["2024-11-01", "2024-11-05", "2024-11-10", "2024-11-15"],
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: [
+        {
+          name: "排名",
+          type: "line",
+          data: [8, 7, 5, 6],
+        },
+      ],
+    };
+    chartInstance.setOption(option);
+    // 调整图表大小
+    chartInstance.resize();
+  }
 };
+
+// 监听对话框的打开和关闭状态
+watch(dialogVisible, (newVal) => {
+  if (newVal) {
+    // 当对话框打开时，延迟渲染图表，确保对话框已完全展示
+    setTimeout(() => {
+      renderChart();
+    }, 0);
+  } else {
+    // 当对话框关闭时，释放图表资源
+    if (chartInstance) {
+      chartInstance.dispose();
+      chartInstance = null;
+    }
+  }
+});
+
+onBeforeUnmount(() => {
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+});
 </script>
 
 <style scoped>
-/* 样式 */
+.chart-container {
+  width: 100%;
+  height: 400px;
+}
 </style>

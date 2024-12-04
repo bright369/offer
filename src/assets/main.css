@@ -155,13 +155,19 @@ a:active {
   color: $fontColorSelect;
   text-decoration: none;
 }
-
-#app {
-  height: 100%;
-  overflow: hidden;
+body {
+  background: url("./imgs/bg.gif") repeat center center;
 }
 
 // 浏览器默认蓝色边框
 :focus-visible {
   outline: none;
+}
+
+.pagination {
+  margin-top: 20px;
+  height: 40px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }

@@ -44,6 +44,7 @@ interface RankStoreState {
     bestRank: number;
     rankHistory: RankHistory[];
     achievements: Achievement[];
+    dailyGameDurations: { date: string; duration: number }[];
   } | null;
   rankDistribution: {
     total: number;
@@ -115,16 +116,12 @@ export const useRankStore = defineStore("rankStore", {
           },
         ];
 
-        const weekData = [
-          // Similar structure as `dayData`
-        ];
+        const weekData = [];
 
-        const monthData = [
-          // Similar structure as `dayData`
-        ];
+        const monthData = [];
         if (type === "daily") {
           this.rankList = dayData;
-        } else if (type=== "weekly") {
+        } else if (type === "weekly") {
           this.rankList = weekData;
         } else {
           this.rankList = monthData;
@@ -141,35 +138,94 @@ export const useRankStore = defineStore("rankStore", {
       type: "daily" | "weekly" | "monthly"
     ): Promise<void> {
       try {
-        const response = await axios.get(`/api/user/rankdetail`, {
-          params: { userId, type },
-        });
-        if (response.data.success) {
-          this.userRankDetail = response.data.data;
-        }
+        // const response = await axios.get(`/api/user/rankdetail`, {
+        //   params: { userId, type },
+        // });
+        // if (response.data.success) {
+        const rankDetail = {
+          avatar: "https://www.example.com/avatar.jpg",
+          nickname: "玩家1",
+          currentRank: 5,
+          bestRank: 1,
+          achievements: [
+            {
+              id: "achievement1",
+              name: "顶级得分手",
+              icon: "https://www.example.com/badge1.jpg",
+            },
+            {
+              id: "achievement2",
+              name: "MVP",
+              icon: "https://www.example.com/badge2.jpg",
+            },
+            {
+              id: "achievement3",
+              name: "无敌王者",
+              icon: "https://www.example.com/badge3.jpg",
+            },
+          ],
+          rankHistory: [
+            {
+              time: "2024-11-01",
+              rank: 8,
+              score: 950,
+            },
+            {
+              time: "2024-11-05",
+              rank: 7,
+              score: 970,
+            },
+            {
+              time: "2024-11-10",
+              rank: 5,
+              score: 1000,
+            },
+            {
+              time: "2024-11-15",
+              rank: 6,
+              score: 980,
+            },
+          ],
+
+          participationTime: 120,
+          scoreHistory: [
+            {
+              time: "2024-11-01",
+              score: 950,
+            },
+            {
+              time: "2024-11-05",
+              score: 970,
+            },
+            {
+              time: "2024-11-10",
+              score: 1000,
+            },
+            {
+              time: "2024-11-15",
+              score: 980,
+            },
+            {
+              time: "2024-11-20",
+              score: 995,
+            },
+          ],
+          dailyGameDurations: [
+            { date: "2024-12-01", duration: 7200 },
+            { date: "2024-12-02", duration: 3600 },
+            { date: "2024-12-03", duration: 5400 },
+            { date: "2024-12-04", duration: 3000 },
+          ],
+        };
+        this.userRankDetail = rankDetail;
+        // }
       } catch (error) {
         console.error("Failed to fetch user rank detail:", error);
       }
     },
-
-    // 获取排名分布数据
-    async fetchRankDistribution(
-      type: "daily" | "weekly" | "monthly"
-    ): Promise<void> {
-      try {
-        const response = await axios.get(`/api/rankdistribution`, {
-          params: { type },
-        });
-        if (response.data.success) {
-          this.rankDistribution = response.data.data;
-        }
-      } catch (error) {
-        console.error("Failed to fetch rank distribution:", error);
-      }
-    },
     // 更新用户的历史排名
     updatePreviousRankData(userId: string, rank: number | null): void {
-        this.previousRankData[userId] = { rank };
-      },
+      this.previousRankData[userId] = { rank };
+    },
   },
 });
