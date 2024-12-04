@@ -1,3 +1,7 @@
+<!--
+ * @git config user.name: wangxin
+ * @LastEditors: wangxin
+-->
 # offer
 
 This template should help get you started developing with Vue 3 in Vite.
