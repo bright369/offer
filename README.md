@@ -1,37 +1,12 @@
-<!--
- * @git config user.name: wangxin
- * @LastEditors: wangxin
--->
-# offer
 
-This template should help get you started developing with Vue 3 in Vite.
+准实时更新（10s间隔）
+更新动画效果
+排名变化提示
+定时刷新机制
 
-## Recommended IDE Setup
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+数据更新：
 
-## Type Support for `.vue` Imports in TS
+正常项目开发中，最好是可以通过websocket 和 sse 来实现，排名情况sse实现最佳
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+目前面试环节使用定时器进行轮训实现。

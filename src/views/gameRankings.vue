@@ -1,12 +1,18 @@
 <template>
+  <h2>排行榜</h2>
+
   <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-    <el-tab-pane label="日榜" name="first"></el-tab-pane>
-    <el-tab-pane label="周榜" name="second"></el-tab-pane>
-    <el-tab-pane label="月榜" name="third"></el-tab-pane>
+    <el-tab-pane label="日榜" name="daily"></el-tab-pane>
+    <el-tab-pane label="周榜" name="weekly"></el-tab-pane>
+    <el-tab-pane label="月榜" name="monthly"></el-tab-pane>
   </el-tabs>
 
   <div class="tab-content">
-    <el-table :data="tableData" style="width: 100%">
+    <el-table
+      :data="tableData"
+      style="width: 100%"
+      :row-class-name="rowClassName"
+    >
       <el-table-column prop="rank" label="排名" width="100" />
       <el-table-column prop="nickname" label="昵称" />
       <el-table-column prop="avatar" label="头像" width="120">
@@ -47,6 +53,7 @@
           >
             详情
           </el-button>
+          <TrendChart :userId="scope.row.userId" />
         </template>
       </el-table-column>
     </el-table>
@@ -64,76 +71,83 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, h } from "vue";
 import { useRouter } from "vue-router";
+import { useRankStore } from "@/stores/rankStore"; // 假设您的 store 存在
 import type { TabsPaneContext } from "element-plus";
-
+import TrendChart from "@/components/trendChart.vue";
+const currentUserId = ref("user123"); // 假设当前登录用户的 ID
 const router = useRouter();
 const pageSize = ref(100);
 const currentPage = ref(1);
-const activeName = ref("first");
+const activeName = ref("daily");
 
-// Data for different tabs
-const dayData = [
-  {
-    rank: 1,
-    userId: "user123",
-    nickname: "玩家1",
-    avatar: "https://www.example.com/avatar1.jpg",
-    score: 1000,
-    rankChange: -1,
-    badges: [
-      {
-        id: "badge1",
-        name: "顶级得分手",
-        icon: "https://www.example.com/badge1.jpg",
-      },
-      { id: "badge2", name: "MVP", icon: "https://www.example.com/badge2.jpg" },
-    ],
-  },
-  {
-    rank: 2,
-    userId: "user456",
-    nickname: "玩家2",
-    avatar: "https://www.example.com/avatar2.jpg",
-    score: 900,
-    rankChange: 2,
-    badges: [
-      {
-        id: "badge3",
-        name: "冠军",
-        icon: "https://www.example.com/badge3.jpg",
-      },
-    ],
-  },
-];
-
-const weekData = [
-  // Similar structure as `dayData`
-];
-
-const monthData = [
-  // Similar structure as `dayData`
-];
-
-// Computed property to get the correct data based on the active tab
+const rankStore = useRankStore();
+// 排名变化提示
+const rankingChanged = ref(false);
+// 计算 tableData 数据
 const tableData = computed(() => {
-  if (activeName.value === "first") {
-    return dayData;
-  } else if (activeName.value === "second") {
-    return weekData;
-  } else {
-    return monthData;
+  // 使用 rankList 从 store 中获取数据
+  return rankStore.rankList;
+});
+// 定时刷新排行榜数据
+const interval = 10 * 1000; // 每 10 秒刷新一次
+let refreshInterval: any = null;
+// 调用 fetchRankList 来填充数据
+onMounted(() => {
+  // 初始加载
+  loadRankList();
+  // 启动定时刷新
+  startAutoRefresh();
+});
+// 加载排行榜数据
+const loadRankList = async () => {
+  await rankStore.fetchRankList(
+    activeName.value,
+    currentPage.value,
+    pageSize.value
+  );
+  checkRankingChange(); // 检查是否有排名变化
+};
+// 启动定时刷新
+const startAutoRefresh = () => {
+  refreshInterval = setInterval(() => {
+    loadRankList();
+  }, interval);
+};
+// 当前用户的上一次排名
+const previousRank = (userId: string) => {
+  const previousRankData = rankStore.previousRankData[userId];
+  return previousRankData ? previousRankData.rank : null;
+};
+// 检查是否有排名变化
+const checkRankingChange = () => {
+  const userRank = rankStore.rankList.find(
+    (rank) => rank.userId === currentUserId.value
+  );
+  const previousRankValue = previousRank(currentUserId.value);
+
+  if (userRank && previousRankValue !== userRank.rank) {
+    ElNotification({
+      title: "提示",
+      message: h("i", { style: "color: teal" }, "你的排名发生变化了！"),
+    });
+  }
+};
+
+// 清除定时器
+onBeforeUnmount(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
   }
 });
-
+// 跳转到用户详情页
 const gotoPage = (userId: string) => {
-  console.log("跳转到详情页", userId);
   router.push({ name: "rankDetail", params: { id: userId } });
 };
 
 const handleClick = (tab: TabsPaneContext) => {
-  console.log(tab);
+  rankStore.fetchRankList(tab.paneName, currentPage.value, pageSize.value);
 };
 
 const handleSizeChange = (val: number) => {
@@ -141,10 +155,19 @@ const handleSizeChange = (val: number) => {
 };
 
 const handleCurrentChange = (val: number) => {
-  console.log(`current page: ${val}`);
+  rankStore.fetchRankList(activeName.value, val, pageSize.value);
+};
+
+const rowClassName = ({ row }: { row: any }) => {
+  return row.userId === currentUserId.value ? "warning-row" : "";
 };
 </script>
 
-<style scoped>
-/* Custom styles */
+<style>
+.el-table .warning-row {
+  --el-table-tr-bg-color: var(--el-color-warning-light-9);
+}
+.el-table .success-row {
+  --el-table-tr-bg-color: var(--el-color-success-light-9);
+}
 </style>
