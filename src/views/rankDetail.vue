@@ -1,4 +1,4 @@
-<!-- src/components/UserDetail.vue -->
+
 <template>
   <el-card class="user-detail-card" shadow="hover">
     <div class="btns">
