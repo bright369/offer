@@ -31,16 +31,16 @@ echarts数据目前直接写在了初始化图标的时候，实际开发中，�
 四.竞争分析  
 根据后端数据进行计算，此处直接写死   
 计算方式  
-const userRank = computed(() => userRankData.value?.rank || "未知");
-const userScore = computed(() => userRankData.value?.score || 0);
-const previousPlayer = computed(() => {
+const userRank = computed(() => userRankData.value?.rank || "未知");  
+const userScore = computed(() => userRankData.value?.score || 0);  
+const previousPlayer = computed(() => {  
 
-  if (userRank.value && userRank.value > 1) {
-    return list.find((rank) => rank.rank === userRank.value - 1);
-  }
-  return null;
-});
+  if (userRank.value && userRank.value > 1) {  
+    return list.find((rank) => rank.rank === userRank.value - 1);  
+  }  
+  return null;  
+});  
 
-const nextPlayer = computed(() => {
-  return list.find((rank) => rank.rank === userRank.value + 1);
-});
+const nextPlayer = computed(() => {  
+  return list.find((rank) => rank.rank === userRank.value + 1);  
+});  
